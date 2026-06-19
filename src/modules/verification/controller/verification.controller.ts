@@ -16,21 +16,21 @@ export class VerificationController {
       context.req.raw,
     );
     const input = validateCreateValidation(payload);
-    const service = new VerificationService(context.env.DB);
+    const service = new VerificationService(context.env);
     const validation = await service.create(input);
 
     return context.json(validation, 201);
   }
 
   static async listVerifications(context: AppContext) {
-    const service = new VerificationService(context.env.DB);
+    const service = new VerificationService(context.env);
     const validations = await service.list();
 
     return context.json({ data: validations });
   }
 
   static async findVerification(context: AppContext) {
-    const service = new VerificationService(context.env.DB);
+    const service = new VerificationService(context.env);
     const validation = await service.findById(context.req.param("id"));
 
     if (!validation) {
@@ -47,7 +47,7 @@ export class VerificationController {
   static async updateVerificationStatus(context: AppContext) {
     const payload = await parseJsonBody<{ status?: unknown }>(context.req.raw);
     const status = validateStatus(payload.status);
-    const service = new VerificationService(context.env.DB);
+    const service = new VerificationService(context.env);
     const validation = await service.updateStatus(
       context.req.param("id"),
       status,
@@ -67,8 +67,11 @@ export class VerificationController {
   // Dev-only: seed sample validations with different statuses
   static async seedVerifications(context: AppContext) {
     // Enabled only when ALLOW_SEED=true is set in env
-    const allow = (process.env.ALLOW_SEED || "false").toLowerCase() === "true";
-    if (!allow) {
+    // Allow seed when either environment variable or Worker env var is set
+    const allowEnv =
+      (process.env.ALLOW_SEED || "false").toLowerCase() === "true";
+    const allowBinding = (context.env as any).ALLOW_SEED === "true";
+    if (!(allowEnv || allowBinding)) {
       throw new HttpError(
         403,
         "forbidden",
@@ -76,7 +79,7 @@ export class VerificationController {
       );
     }
 
-    const service = new VerificationService(context.env.DB);
+    const service = new VerificationService(context.env);
 
     const samples = [
       {

@@ -19,7 +19,8 @@ type D1Row = {
 const memoryStore = new Map<string, KycValidation>();
 
 export class VerificationRepository {
-  constructor(private readonly database?: D1Database) {}
+  // Accept the Worker Env so we can access D1 and R2 bindings
+  constructor(private readonly env?: Env) {}
 
   async create(input: CreateValidationInput): Promise<KycValidation> {
     const now = new Date().toISOString();
@@ -31,7 +32,47 @@ export class VerificationRepository {
       updatedAt: now,
     };
 
-    if (this.database) {
+    const database = (this.env as any)?.DB as D1Database | undefined;
+
+    // If R2 binding `IMAGES` exists, store images there and replace base64 with keys
+    if (this.env && (this.env as any).IMAGES) {
+      try {
+        const r2 = (this.env as any).IMAGES as R2Bucket;
+        // selfie
+        if (
+          validation.selfieImage &&
+          validation.selfieImage.startsWith("data:")
+        ) {
+          const s = parseDataUrl(validation.selfieImage);
+          if (s) {
+            const key = `${validation.id}-selfie`;
+            await r2.put(key, s.buffer, {
+              httpMetadata: { contentType: s.contentType },
+            });
+            validation.selfieImage = key;
+          }
+        }
+        // document
+        if (
+          validation.documentImage &&
+          validation.documentImage.startsWith("data:")
+        ) {
+          const s = parseDataUrl(validation.documentImage);
+          if (s) {
+            const key = `${validation.id}-document`;
+            await r2.put(key, s.buffer, {
+              httpMetadata: { contentType: s.contentType },
+            });
+            validation.documentImage = key;
+          }
+        }
+      } catch (e) {
+        // swallow R2 errors and fallback to storing base64
+        console.error("R2 put failed", e);
+      }
+    }
+
+    if (database) {
       await this.database
         .prepare(
           `INSERT INTO validations
@@ -58,8 +99,8 @@ export class VerificationRepository {
   }
 
   async list(): Promise<KycValidation[]> {
-    if (this.database) {
-      const result = await this.database
+    if (database) {
+      const result = await database
         .prepare("SELECT * FROM validations ORDER BY created_at DESC")
         .all<D1Row>();
 
@@ -73,8 +114,8 @@ export class VerificationRepository {
   }
 
   async findById(id: string): Promise<KycValidation | null> {
-    if (this.database) {
-      const row = await this.database
+    if (database) {
+      const row = await database
         .prepare("SELECT * FROM validations WHERE id = ?")
         .bind(id)
         .first<D1Row>();
@@ -97,8 +138,8 @@ export class VerificationRepository {
       updatedAt: new Date().toISOString(),
     };
 
-    if (this.database) {
-      await this.database
+    if (database) {
+      await database
         .prepare(
           "UPDATE validations SET status = ?, updated_at = ? WHERE id = ?",
         )
@@ -122,10 +163,34 @@ function mapRow(row: D1Row): KycValidation {
     name: row.name,
     email: row.email,
     documentNumber: row.document_number,
-    selfieImage: row.selfie_image,
-    documentImage: row.document_image,
+    // If stored as R2 key, expose a local proxy path `/images/:key` to retrieve it
+    selfieImage: row.selfie_image
+      ? `/images/${row.selfie_image}`
+      : row.selfie_image,
+    documentImage: row.document_image
+      ? `/images/${row.document_image}`
+      : row.document_image,
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+function parseDataUrl(
+  dataUrl: string,
+): { contentType: string; buffer: Uint8Array } | null {
+  const m = dataUrl.match(/^data:(.+);base64,(.*)$/);
+  if (!m) return null;
+  const contentType = m[1];
+  const b64 = m[2];
+  let buffer: Uint8Array;
+  if (typeof Buffer !== "undefined") {
+    buffer = Buffer.from(b64, "base64");
+  } else {
+    const binary = atob(b64);
+    const len = binary.length;
+    buffer = new Uint8Array(len);
+    for (let i = 0; i < len; i++) buffer[i] = binary.charCodeAt(i);
+  }
+  return { contentType, buffer };
 }

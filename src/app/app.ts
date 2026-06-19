@@ -55,4 +55,24 @@ app.get("/health", (context) =>
 
 app.route("/verification", verificationRoutes);
 
+// Serve R2 images via a proxy route when R2 binding `IMAGES` exists.
+app.get("/images/:key", async (c) => {
+  const key = c.req.param("key");
+  const bucket = (c.env as any).IMAGES as R2Bucket | undefined;
+  if (!bucket) return c.text("Not found", 404);
+
+  const obj = await bucket.get(key);
+  if (!obj) return c.text("Not found", 404);
+
+  const array = await obj.arrayBuffer();
+  const headers: Record<string, string> = {};
+  if (obj.httpMetadata && (obj.httpMetadata as any).contentType) {
+    headers["Content-Type"] = (obj.httpMetadata as any).contentType;
+  } else {
+    headers["Content-Type"] = "application/octet-stream";
+  }
+
+  return new Response(array, { headers });
+});
+
 export default app;

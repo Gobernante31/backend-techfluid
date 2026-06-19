@@ -8,5 +8,10 @@ database_name = "techfluid_kyc"
 database_id = "replace-with-cloudflare-d1-database-id"
 migrations_dir = "migrations"
 
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "replace-with-your-r2-bucket"
+preview_bucket = false
+
 [vars]
 APP_ENV = "production"
