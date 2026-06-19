@@ -1,0 +1,26 @@
+{
+  "name": "techfluid-kyc-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev src/index.ts --local --port 8787",
+    "deploy": "wrangler deploy",
+    "build": "tsc --noEmit",
+    "test": "jest --runInBand",
+    "clean:wrangler": "powershell -File ./scripts/clean-wrangler.ps1",
+    "test:watch": "jest --watchAll",
+    "test:jest": "jest"
+  },
+  "dependencies": {
+    "hono": "4.6.14"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20241218.0",
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "5.7.2",
+    "wrangler": "^4.102.0"
+  }
+}

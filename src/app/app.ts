@@ -20,7 +20,10 @@ const allowedOrigins = (() => {
   try {
     const raw = process.env.ALLOWED_ORIGINS;
     if (!raw) return DEFAULT_ORIGINS;
-    return raw.split(",").map((s) => s.trim()).filter(Boolean);
+    return raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   } catch (e) {
     return DEFAULT_ORIGINS;
   }

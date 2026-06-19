@@ -7,7 +7,10 @@ backend-dev.*.log
 
 # Environment files
 .env
-.env.*
+.env.local
+.env.*.local
+# Keep example files in the repo
+!.env.example
 
 # pnpm store
 .pnpm-store/

@@ -69,7 +69,11 @@ export class VerificationController {
     // Enabled only when ALLOW_SEED=true is set in env
     const allow = (process.env.ALLOW_SEED || "false").toLowerCase() === "true";
     if (!allow) {
-      throw new HttpError(403, "forbidden", "Seeding is disabled in this environment.");
+      throw new HttpError(
+        403,
+        "forbidden",
+        "Seeding is disabled in this environment.",
+      );
     }
 
     const service = new VerificationService(context.env.DB);
@@ -79,22 +83,28 @@ export class VerificationController {
         name: "Alice Demo",
         email: "alice@example.com",
         documentNumber: "A1234567",
-        selfieImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
-        documentImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
+        selfieImage:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
+        documentImage:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
       },
       {
         name: "Bob Demo",
         email: "bob@example.com",
         documentNumber: "B7654321",
-        selfieImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
-        documentImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
+        selfieImage:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
+        documentImage:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
       },
       {
         name: "Carol Demo",
         email: "carol@example.com",
         documentNumber: "C0000000",
-        selfieImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
-        documentImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
+        selfieImage:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
+        documentImage:
+          "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB...",
       },
     ];
 
