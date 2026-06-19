@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.wrangler/
+.wrangler-config/
+backend-dev.*.log
+*.local
+
+# Environment files
+.env
+.env.*
+
+# pnpm store
+.pnpm-store/
+pnpm-store/
+
+# Local wrangler state
+.wrangler/
+.wrangler-config/
+
+# SQLite / DB local files
+*.sqlite
+*.db
