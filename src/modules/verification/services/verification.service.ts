@@ -4,7 +4,7 @@ import type {
   KycValidation,
 } from "../../../domain/types";
 
-// The service now receives the full Worker Env so repositories can access D1 and R2 bindings.
+// The service now receives the full Worker Env so repositories can access D1 bindings.
 export class VerificationService {
   repository: VerificationRepository;
 
